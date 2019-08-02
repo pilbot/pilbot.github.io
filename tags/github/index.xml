@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Github on home/pilbot</title>
+    <link>http://pilbot.github.io/tags/github/</link>
+    <description>Recent content in Github on home/pilbot</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Thu, 18 Jul 2019 12:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://pilbot.github.io/tags/github/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Presenting Revmoji</title>
+      <link>http://pilbot.github.io/post/presenting-revmoji/</link>
+      <pubDate>Thu, 18 Jul 2019 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/post/presenting-revmoji/</guid>
+      <description>tl;dr: use an emoji-based system to improve communication in code reviews 😆 Definitions  The contributor is the person or persons submitting the change request. The reviewer is the person or persons checking the change request.     Emoji Description     ∅ The emptymoji (∅) is much like the empty set and everything is true of the empty set 😄. The reviewer expects the contributor to make a change to the code, or is requiring a clarification from the contributor about the code.</description>
+    </item>
+    
+  </channel>
+</rss>

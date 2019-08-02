@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Jenkins Pipeline on home/pilbot</title>
+    <link>http://pilbot.github.io/tags/jenkins-pipeline/</link>
+    <description>Recent content in Jenkins Pipeline on home/pilbot</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Fri, 11 Mar 2016 12:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://pilbot.github.io/tags/jenkins-pipeline/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Alright time&#39;s up, let&#39;s do this!</title>
+      <link>http://pilbot.github.io/post/lets-do-this/</link>
+      <pubDate>Fri, 11 Mar 2016 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/post/lets-do-this/</guid>
+      <description>Welcome to hopefully the first of a series of posts detailing my battles with technology. Trying to plug all the things together and make them play nice, and hopefully no big explosions. Always remember folks in infrastructure, “If anything exciting happens, we&amp;rsquo;ve done it wrong”.
+We have recently been working on improving our test infrastructure. Previously this was a large bash script (as all the best projects are 😉) running within a single job on a Jenkins CI server.</description>
+    </item>
+    
+  </channel>
+</rss>

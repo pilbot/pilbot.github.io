@@ -1,0 +1,8 @@
+body {
+    font-size: 175% !important;
+}
+
+th, td {
+    border-bottom: 1px solid #cccccc;
+    padding: 10px !important;
+}

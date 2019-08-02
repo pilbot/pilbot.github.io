@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on home/pilbot</title>
+    <link>http://pilbot.github.io/tags/</link>
+    <description>Recent content in Tags on home/pilbot</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-gb</language>
+    <lastBuildDate>Thu, 18 Jul 2019 12:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="http://pilbot.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Code Reviews</title>
+      <link>http://pilbot.github.io/tags/code-reviews/</link>
+      <pubDate>Thu, 18 Jul 2019 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/code-reviews/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Docker</title>
+      <link>http://pilbot.github.io/tags/docker/</link>
+      <pubDate>Fri, 11 Mar 2016 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/docker/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Github</title>
+      <link>http://pilbot.github.io/tags/github/</link>
+      <pubDate>Thu, 18 Jul 2019 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/github/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hello World</title>
+      <link>http://pilbot.github.io/tags/hello-world/</link>
+      <pubDate>Fri, 11 Mar 2016 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/hello-world/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Jenkins Pipeline</title>
+      <link>http://pilbot.github.io/tags/jenkins-pipeline/</link>
+      <pubDate>Fri, 11 Mar 2016 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/jenkins-pipeline/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Revmoji</title>
+      <link>http://pilbot.github.io/tags/revmoji/</link>
+      <pubDate>Thu, 18 Jul 2019 12:00:00 +0000</pubDate>
+      
+      <guid>http://pilbot.github.io/tags/revmoji/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

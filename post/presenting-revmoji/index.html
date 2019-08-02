@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+    <head>
+         
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Presenting Revmoji</title>
+        
+        <style>
+
+    html body {
+        font-family: 'Raleway', sans-serif;
+        background-color: white;
+    }
+
+    :root {
+        --accent: #990000;
+        --border-width:  5px ;
+    }
+
+</style>
+
+
+<link rel="stylesheet" href="http://pilbot.github.io/css/main.css">
+
+
+ <link rel="stylesheet" href="http://pilbot.github.io/css/blog.css"> 
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+
+
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-dark.min.css"> 
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+ 
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/haskell.min.js"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/bash.min.js"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/python.min.js"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/groovy.min.js"></script>  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script> 
+
+    <script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<script>$(document).on('click', function() { $('.collapse').collapse('hide'); })</script>
+ <meta name="generator" content="Hugo 0.54.0" />
+        
+
+        
+    </head>
+
+    
+    
+    <script type="text/javascript" async
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    
+
+    <body>
+         
+        <nav class="navbar navbar-default navbar-fixed-top">
+
+            <div class="container">
+
+                <div class="navbar-header">
+
+                    <a class="navbar-brand visible-xs" href="#">Presenting Revmoji</a>
+
+                    <button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+
+                </div>
+
+                <div class="collapse navbar-collapse">
+
+                    
+                        <ul class="nav navbar-nav">
+                            
+                                <li><a href="/">home</a></li>
+                            
+                                <li><a href="/post/">posts</a></li>
+                            
+                        </ul>
+                    
+
+                    
+                        <ul class="nav navbar-nav navbar-right">
+                            
+                                <li class="navbar-icon"><a href="mailto:pipeston@gmail.com"><i class="fa fa-envelope-o"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="https://github.com/pilbot/"><i class="fa fa-github"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="https://twitter.com/drpilbot/"><i class="fa fa-twitter"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="https://www.linkedin.com/in/willcooke/"><i class="fa fa-linkedin"></i></a></li>
+                            
+                                <li class="navbar-icon"><a href="https://stackoverflow.com/users/74881/dr-pil"><i class="fa fa-stack-overflow"></i></a></li>
+                            
+                        </ul>
+                    
+
+                </div>
+
+            </div>
+
+        </nav>
+
+
+<main>
+
+    <div class="item">
+
+    
+    
+    
+
+    
+    
+
+    <h4><a href="/post/presenting-revmoji/">Presenting Revmoji</a></h4>
+    <h5>July 18, 2019</h5>
+    
+    <a href="http://pilbot.github.iotags/github"><kbd class="item-tag">Github</kbd></a>
+    
+    <a href="http://pilbot.github.iotags/code-reviews"><kbd class="item-tag">Code Reviews</kbd></a>
+    
+    <a href="http://pilbot.github.iotags/revmoji"><kbd class="item-tag">Revmoji</kbd></a>
+    
+
+</div>
+
+
+    <br> <div class="text-justify">
+
+<h3 id="tl-dr-use-an-emoji-based-system-to-improve-communication-in-code-reviews"><strong>tl;dr:</strong> use an emoji-based system to improve communication in code reviews 😆</h3>
+
+<h4 id="definitions">Definitions</h4>
+
+<ul>
+<li>The contributor is the person or persons submitting the change request.</li>
+<li>The reviewer is the person or persons checking the change request.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th align="center">Emoji</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="center">∅</td>
+<td>The emptymoji (∅) is much like the empty set and <a href="https://en.wikipedia.org/wiki/Vacuous_truth">everything is true of the empty set</a> 😄. The reviewer expects the contributor to make a change to the code, or is requiring a clarification from the contributor about the code.</td>
+</tr>
+
+<tr>
+<td align="center">🙈&nbsp;∨&nbsp;⛏</td>
+<td>The see no evil monkey or the pick axe (i.e. a miner 😉) represents a minor issue with the code, the code still works and handles the use cases it is supposed to, however, there could be an unconsidered edge case in the future. One of these won&rsquo;t stop a change being approved but a few of them will (although we would be <a href="https://www.gov.uk/driving-test/driving-test-faults-result">less generous</a> than the DVSA).</td>
+</tr>
+
+<tr>
+<td align="center">🐧&nbsp;∨&nbsp;🐤</td>
+<td>The penguin or the baby penguin, in sort of a rhyming slang the penguin is a <a href="https://reddwarf.fandom.com/wiki/Mr._Flibble">Mr Flibble</a> (i.e. a quibble). Stylistically I would have approached the problem a different way, or highlighting that there are other ways to approach the problem. The point is it would be a waste if the change process was purely a mechanical way of getting code out as quickly as possible. The review process should be about teaching other members of the team how the contributors code works.</td>
+</tr>
+
+<tr>
+<td align="center">☁️&nbsp;∨&nbsp;💡</td>
+<td>The cloud or the lightbulb mean that reading the change made me think of something. We should follow up with it in another channel. The onus is on the reviewer to do the follow up (e.g. send an email or create another issue).</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="why-revmoji">Why Revmoji</h3>
+
+<p>We don&rsquo;t need to argue why code reviews are so critical to a software project.
+Many intelligent people have answered that question comprehensively. Instead
+I&rsquo;d like to focus on code review as a tool for encouraging shared ownership and
+training people on a code base.</p>
+
+<p>Typically we&rsquo;ll work on teams with a broad range of abilities, this often leads
+to an imbalance when reviewing. More junior engineers can be apprehensive about
+reviewing a more senior (or project lead&rsquo;s) code. That is if they even get the
+opportunity of review at all.</p>
+
+<p>Conversely when code is reviewed it can be difficult for the proposer to tease
+out what is a stylistic point and what is a critical concern. With an
+experience or skill disparity this is exacerbated, resulting in longer times to
+merge.</p>
+
+<p>Using emoji we can quickly and easily mark our code reviews in a way that both
+parties can understand. Hopefully this system just acts as a trigger for
+developing a much broader shared language with your team.</p>
+
+<p>Finally this is not intended to be complete I would like to add more, it&rsquo;s not
+as comprehensive as <a href="https://gitmoji.carloscuesta.me/">gitmoji</a> but think it&rsquo;s
+a good place to start. 🎁ing revmoji.</p>
+</div>
+
+    
+    
+
+    
+
+    
+
+</main>
+
+        <footer>
+
+            <p class="copyright text-muted">&copy; 2019 William Cooke. All rights reserved.</p>
+
+        </footer>
+       
+    </body>
+
+</html>
+
