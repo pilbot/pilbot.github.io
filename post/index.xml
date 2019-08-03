@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on home/pilbot</title>
-    <link>http://pilbot.github.io/post/</link>
+    <link>https://pilbot.github.io/post/</link>
     <description>Recent content in Posts on home/pilbot</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-gb</language>
     <lastBuildDate>Thu, 18 Jul 2019 12:00:00 +0000</lastBuildDate>
     
-	<atom:link href="http://pilbot.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://pilbot.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Presenting Revmoji</title>
-      <link>http://pilbot.github.io/post/presenting-revmoji/</link>
+      <link>https://pilbot.github.io/post/presenting-revmoji/</link>
       <pubDate>Thu, 18 Jul 2019 12:00:00 +0000</pubDate>
       
-      <guid>http://pilbot.github.io/post/presenting-revmoji/</guid>
+      <guid>https://pilbot.github.io/post/presenting-revmoji/</guid>
       <description>tl;dr: use an emoji-based system to improve communication in code reviews 😆 Definitions  The contributor is the person or persons submitting the change request. The reviewer is the person or persons checking the change request.     Emoji Description     ∅ The emptymoji (∅) is much like the empty set and everything is true of the empty set 😄. The reviewer expects the contributor to make a change to the code, or is requiring a clarification from the contributor about the code.</description>
     </item>
     
     <item>
       <title>Alright time&#39;s up, let&#39;s do this!</title>
-      <link>http://pilbot.github.io/post/lets-do-this/</link>
+      <link>https://pilbot.github.io/post/lets-do-this/</link>
       <pubDate>Fri, 11 Mar 2016 12:00:00 +0000</pubDate>
       
-      <guid>http://pilbot.github.io/post/lets-do-this/</guid>
+      <guid>https://pilbot.github.io/post/lets-do-this/</guid>
       <description>Welcome to hopefully the first of a series of posts detailing my battles with technology. Trying to plug all the things together and make them play nice, and hopefully no big explosions. Always remember folks in infrastructure, “If anything exciting happens, we&amp;rsquo;ve done it wrong”.
 We have recently been working on improving our test infrastructure. Previously this was a large bash script (as all the best projects are 😉) running within a single job on a Jenkins CI server.</description>
     </item>
