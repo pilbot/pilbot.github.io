@@ -6,3 +6,98 @@ th, td {
     border-bottom: 1px solid #cccccc;
     padding: 10px !important;
 }
+
+.pkmn {
+    display: flex;
+    align-items: center;
+}
+
+.pkmn-name {
+    margin-left: 5px;
+}
+
+.pkmn-types {
+    display: flex;
+    font-variant: small-caps;
+    width: 150px;
+}
+
+.pkmn-type {
+    flex: 1;
+    text-align: center;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Type colours from Bulbapedia (https://bulbapedia.bulbagarden.net/wiki/Normal_(type)) */
+.type-normal {
+    background: #A8A878;
+}
+
+.type-fire {
+    background: #F08030;
+}
+
+.type-fighting {
+    background: #C03028;
+}
+
+.type-water {
+    background: #6890F0;
+}
+
+.type-flying {
+    background: #A890F0;
+}
+
+.type-grass {
+    background: #78C850;
+}
+
+.type-poison {
+    background: #A040A0;
+}
+
+.type-electric {
+    background: #F8D030;
+}
+
+.type-ground {
+    background: #E0C068;
+}
+
+.type-psychic {
+    background: #F85888;
+}
+
+.type-rock {
+    background: #B8A038;
+}
+
+.type-ice {
+    background: #98D8D8;
+}
+
+.type-bug {
+    background: #A8B820;
+}
+
+.type-dragon {
+    background: #7038F8;
+}
+
+.type-ghost {
+    background: #705898;
+}
+
+.type-dark {
+    background: #705848;
+}
+
+.type-steel {
+    background: #B8B8D0;
+}
+
+.type-fairy {
+    background: #EE99AC;
+}

@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://pilbot.github.io/post/dexit-means-dexit/</loc>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://pilbot.github.io/post/presenting-revmoji/</loc>
     <lastmod>2019-07-18T12:00:00+00:00</lastmod>
   </url>
@@ -20,6 +25,12 @@
   <url>
     <loc>https://pilbot.github.io/tags/code-reviews/</loc>
     <lastmod>2019-07-18T12:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://pilbot.github.io/tags/dexit/</loc>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -48,8 +59,20 @@
   </url>
   
   <url>
+    <loc>https://pilbot.github.io/tags/national-pok%C3%A9dex/</loc>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://pilbot.github.io/tags/pok%C3%A9mon/</loc>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://pilbot.github.io/post/</loc>
-    <lastmod>2019-07-18T12:00:00+00:00</lastmod>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -67,7 +90,7 @@
   
   <url>
     <loc>https://pilbot.github.io/</loc>
-    <lastmod>2019-07-18T12:00:00+00:00</lastmod>
+    <lastmod>2019-09-03T12:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
