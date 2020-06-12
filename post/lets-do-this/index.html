@@ -59,7 +59,7 @@
 
 
 <script>$(document).on('click', function() { $('.collapse').collapse('hide'); })</script>
- <meta name="generator" content="Hugo 0.54.0" />
+ <meta name="generator" content="Hugo 0.72.0" />
         
 
         
@@ -139,23 +139,20 @@
     <h4><a href="/post/lets-do-this/">Alright time&#39;s up, let&#39;s do this!</a></h4>
     <h5>March 11, 2016</h5>
     
-    <a href="https://pilbot.github.iotags/hello-world"><kbd class="item-tag">Hello World</kbd></a>
+    <a href="https://pilbot.github.io/tags/hello-world"><kbd class="item-tag">Hello World</kbd></a>
     
-    <a href="https://pilbot.github.iotags/docker"><kbd class="item-tag">Docker</kbd></a>
+    <a href="https://pilbot.github.io/tags/docker"><kbd class="item-tag">Docker</kbd></a>
     
-    <a href="https://pilbot.github.iotags/jenkins-pipeline"><kbd class="item-tag">Jenkins Pipeline</kbd></a>
+    <a href="https://pilbot.github.io/tags/jenkins-pipeline"><kbd class="item-tag">Jenkins Pipeline</kbd></a>
     
 
 </div>
 
 
-    <br> <div class="text-justify">
-
-<p>Welcome to hopefully the first of a series of posts detailing my battles
+    <br> <div class="text-justify"><p>Welcome to hopefully the first of a series of posts detailing my battles
 with technology. Trying to plug all the things together and make them play nice,
 and hopefully no big explosions. Always remember folks in infrastructure,
 <a href="https://youtu.be/Wpzvaqypav8?t=1064">“If anything exciting happens, we&rsquo;ve done it wrong”</a>.</p>
-
 <p><a href="http://www.conversocial.com">We</a> have recently been working on improving our
 test infrastructure. Previously this was a large bash script (as all the best
 projects are 😉) running within a single job on a <a href="https://jenkins-ci.org/">Jenkins CI</a>
@@ -166,264 +163,217 @@ require a load of initialization for the associated services (e.g mySQL,
 MongoDB, Solr, RabbitMQ) before the test suite is run and a load of cleanup
 afterwards. Including running the test suite this was taking in the region of
 25 minutes, which invariably leads to <a href="https://xkcd.com/303/">distracted developers</a>.</p>
-
 <p>The main requirements we had for a new system were:</p>
-
 <ul>
 <li>It needed to be a drop in replacement in our build pipeline (e.g. there
 should be minimal changes outside the test infrastructure)</li>
 <li>The testing infrastructure should be easy to update and kept in SCM</li>
 <li>The tests should run in under 10 minutes</li>
 </ul>
-
 <p>Given these restrictions, we decided to go was to keep using Jenkins CI and
 use the <del>Workflow plugin</del> <a href="https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Plugin">Pipeline plugin</a>
 to break up the test script into smaller executable chunks. The next part of
 the puzzle was to use <a href="https://docs.docker.com/compose/"><code>docker-compose</code></a>
 to manage the running of test services so that multiple instances of the tests
 could be run at the same time on one machine without interfering with one
-another<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup>. Luckily the service requirements could all be described as
+another<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. Luckily the service requirements could all be described as
 a one-to-many relationship from the test node, which simplified matters somewhat.</p>
-
 <h3 id="dockerizing-the-test-services">Dockerizing the test services</h3>
-
 <p>We store this configuration with the code repository, thus the storing the
 tests and associated configuration not only in one location but in lockstep with
 each commit of the code.</p>
-
 <p>The next part was relatively straight forward, in fact in most cases we could
 simply use the images that were contained on the docker registry. Using docker
 volumes to link to any required configuration:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">mongo</span>:
+  <span style="color:#66d9ef">image</span>: mongo:<span style="color:#ae81ff">3.0</span>
+  <span style="color:#66d9ef">command</span>: --smallfiles
 
-<pre><code class="language-yaml">mongo:
-  image: mongo:3.0
-  command: --smallfiles
-
-mysql:
-  image: mysql:5.6
-  environment:
+<span style="color:#66d9ef">mysql</span>:
+  <span style="color:#66d9ef">image</span>: mysql:<span style="color:#ae81ff">5.6</span>
+  <span style="color:#66d9ef">environment</span>:
     - MYSQL_ROOT_PASSWORD=secrets
-  volumes:
+  <span style="color:#66d9ef">volumes</span>:
     - ./deploy/mysql/conf.d:/etc/mysql/conf.d
-</code></pre>
-
-<p>For the test node itself this was slightly more complex as it needed to be able
+</code></pre></div><p>For the test node itself this was slightly more complex as it needed to be able
 to access the other service containers as well as being built from a specific
 <code>Dockerfile</code>:</p>
-
-<pre><code class="language-yaml">test:
-  image: $2
-  links:
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#66d9ef">test</span>:
+  <span style="color:#66d9ef">image</span>: $<span style="color:#ae81ff">2</span>
+  <span style="color:#66d9ef">links</span>:
     - mongo:mongo
     - mysql:mysql
     - redis:redis
     - solr:solr
-</code></pre>
-
-<p>The primary reason for using this method is to prevent the explosion in number
+</code></pre></div><p>The primary reason for using this method is to prevent the explosion in number
 of images created on the same box when running multiple instances, and also so
 when we move to multi-node we can grab the image from our registry rather than
 building it on each box.</p>
-
 <p>Putting this all together we can construct a simple script to be run in
 the checkout stage of the job. Firstly we would build from pre-made
 <code>Dockerfile</code>s the custom images we need and then output the correct
 docker-compose file to STDOUT:</p>
-
-<pre><code class="language-bash">#!/bin/bash
-
-short_hash=`git rev-parse --short HEAD`
-build_tag=&quot;$(date -u +%Y%m%d-%H%M%S)-master-$short_hash&quot;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
+</span><span style="color:#75715e"></span>
+short_hash<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>git rev-parse --short HEAD<span style="color:#e6db74">`</span>
+build_tag<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>date -u +%Y%m%d-%H%M%S<span style="color:#66d9ef">)</span><span style="color:#e6db74">-master-</span>$short_hash<span style="color:#e6db74">&#34;</span>
 docker build -t test:$build_tag .
 
-cat &lt;&lt;EOF
-mongo:
-  image: mongo:3.0
-  command: --smallfiles
-
-mysql:
-  image: mysql:5.6
-  environment:
-    - MYSQL_ROOT_PASSWORD=secrets
-  volumes:
-    - ./deploy/mysql/conf.d:/etc/mysql/conf.d
-
-test:
-  image: test:$build_tag
-  links:
-    - mongo:mongo
-    - mysql:mysql
-EOF
-</code></pre>
-
-<p>Once we had this model in place it was easy enough to run multiple builds
+cat <span style="color:#e6db74">&lt;&lt;EOF
+</span><span style="color:#e6db74">mongo:
+</span><span style="color:#e6db74">  image: mongo:3.0
+</span><span style="color:#e6db74">  command: --smallfiles
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">mysql:
+</span><span style="color:#e6db74">  image: mysql:5.6
+</span><span style="color:#e6db74">  environment:
+</span><span style="color:#e6db74">    - MYSQL_ROOT_PASSWORD=secrets
+</span><span style="color:#e6db74">  volumes:
+</span><span style="color:#e6db74">    - ./deploy/mysql/conf.d:/etc/mysql/conf.d
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">test:
+</span><span style="color:#e6db74">  image: test:$build_tag
+</span><span style="color:#e6db74">  links:
+</span><span style="color:#e6db74">    - mongo:mongo
+</span><span style="color:#e6db74">    - mysql:mysql
+</span><span style="color:#e6db74">EOF</span>
+</code></pre></div><p>Once we had this model in place it was easy enough to run multiple builds
 concurrently on the same instance without interfering with another test cycle,
 and relatively little performance impact, so while we could now run parallel
 builds we were still in the mid-twenty minutes per run range.</p>
-
 <h3 id="designing-a-build-flow-with-jenkins-pipeline">Designing a build flow with Jenkins pipeline</h3>
-
 <p>Next we needed to get these tests quicker, the one long running script wasn&rsquo;t
 cutting the mustard anymore and needed to be sped up. The first part of this
 was to develop a simple model of how the tests should run:</p>
-
-<p><img src="/images/build-flow-design.png" alt="Build Flow Design" /></p>
-
+<p><img src="/images/build-flow-design.png" alt="Build Flow Design"></p>
 <p>The basic model shows ideally we would start by checking out all the required
 code for the test run, building the required docker images to run the tests,
 run all the tests, then collecting and publishing the results and artifacts.</p>
-
 <p>Using the pipeline model we use the <code>stage</code> step to separate the
 job into sections:</p>
-
-<p><img src="/images/build-flow-stages.png" alt="Build Flow Stages" /></p>
-
+<p><img src="/images/build-flow-stages.png" alt="Build Flow Stages"></p>
 <p>Each <code>stage</code> will run until all parts of that stage are complete before moving
 to the next stage. The pipeline model unfortunately doesn&rsquo;t have a good way of
 fork/joining a job into complex workflows like we have described. So we end up
 waiting for parts of the job we are not dependent on. For example, there is no
 reason to wait for the frontend tests to complete if the docker images are
-already built we should be able to start testing the backend immediately<sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup>.</p>
-
+already built we should be able to start testing the backend immediately<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>.</p>
 <h2 id="starting-docker-from-the-pipeline">Starting docker from the pipeline</h2>
-
 <p>First we have two companion functions to bring up and destroy the containers
 using the <code>sh</code> function and <code>docker-compose</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">startDockers</span><span style="color:#f92672">(</span>project<span style="color:#f92672">){</span>
+  <span style="color:#75715e">// stop and destroy any existing containers
+</span><span style="color:#75715e"></span>  destroyDockers project
+  sh <span style="color:#e6db74">&#34;docker-compose -p ${project} up -d&#34;</span>
 
-<pre><code class="language-groovy">def startDockers(project){
-  // stop and destroy any existing containers
-  destroyDockers project
-  sh &quot;docker-compose -p ${project} up -d&quot;
+  <span style="color:#75715e">// check that databases are accessible from within the container
+</span><span style="color:#75715e"></span>  timeout<span style="color:#f92672">(</span>time: <span style="color:#ae81ff">60</span><span style="color:#f92672">,</span> unit: <span style="color:#e6db74">&#39;SECONDS&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    sh <span style="color:#e6db74">&#34;docker exec ${project}_test_1 /bin/bash -c &#39;while ! /usr/bin/mysql -uroot -psecrets -hmysql -P3306 -t -e \&#34;show databases;\&#34; &gt; /dev/null 2&gt;&amp;1; do sleep 5; done;&#39;&#34;</span>
+    sh <span style="color:#e6db74">&#34;docker exec ${project}_test_1 /bin/bash -c &#39;while ! curl http://mongo:27017/; do sleep 5; done;&#39;&#34;</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-  // check that databases are accessible from within the container
-  timeout(time: 60, unit: 'SECONDS') {
-    sh &quot;docker exec ${project}_test_1 /bin/bash -c 'while ! /usr/bin/mysql -uroot -psecrets -hmysql -P3306 -t -e \&quot;show databases;\&quot; &gt; /dev/null 2&gt;&amp;1; do sleep 5; done;'&quot;
-    sh &quot;docker exec ${project}_test_1 /bin/bash -c 'while ! curl http://mongo:27017/; do sleep 5; done;'&quot;
-  }
-}
-
-def destroyDockers(project){
-  sh &quot;docker-compose -p ${project} stop &amp;&amp; sudo docker-compose -p ${project} rm -f&quot;
-}
-</code></pre>
-
-<p>As <code>docker-compose</code> doesn&rsquo;t have a concept on waiting on dependent services we
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">destroyDockers</span><span style="color:#f92672">(</span>project<span style="color:#f92672">){</span>
+  sh <span style="color:#e6db74">&#34;docker-compose -p ${project} stop &amp;&amp; sudo docker-compose -p ${project} rm -f&#34;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>As <code>docker-compose</code> doesn&rsquo;t have a concept on waiting on dependent services we
 use the <code>timeout</code> workflow step to check they are up before returning to the
 main flow.</p>
-
 <p>So to run a group of the backend tests within a container we can use a <code>node</code>
 like:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy">node <span style="color:#f92672">{</span>
+  dir<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;checkout&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// where checkout is a frozen git repository
+</span><span style="color:#75715e"></span>    unstash <span style="color:#e6db74">&#39;checkout&#39;</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+      startDockers <span style="color:#e6db74">&#39;tests&#39;</span>
 
-<pre><code class="language-groovy">node {
-  dir('checkout') {
-    // where checkout is a frozen git repository
-    unstash 'checkout'
-    try {
-      startDockers 'tests'
+      <span style="color:#75715e">// Run the test command within the container
+</span><span style="color:#75715e"></span>      sh <span style="color:#e6db74">&#34;docker exec tests_test_1 /bin/bash -c &#39;cd /srv/app/; /srv/app-venv/bin/python manage.py test || true&#39;&#34;</span>
 
-      // Run the test command within the container
-      sh &quot;docker exec tests_test_1 /bin/bash -c 'cd /srv/app/; /srv/app-venv/bin/python manage.py test || true'&quot;
-
-      // Copy results from the container
-      sh 'docker cp tests_test_1:/srv/app/nosetests.xml results.xml'
-      stash name: &quot;results&quot;, includes: &quot;results.xml&quot;
-    } finally {
-      destroyDockers 'tests'
-    }
-  }
-}
-</code></pre>
-
-<p>By using a <code>try</code>-<code>finally</code> we can ensure that if the tests fall over or are
+      <span style="color:#75715e">// Copy results from the container
+</span><span style="color:#75715e"></span>      sh <span style="color:#e6db74">&#39;docker cp tests_test_1:/srv/app/nosetests.xml results.xml&#39;</span>
+      stash name: <span style="color:#e6db74">&#34;results&#34;</span><span style="color:#f92672">,</span> includes: <span style="color:#e6db74">&#34;results.xml&#34;</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+      destroyDockers <span style="color:#e6db74">&#39;tests&#39;</span>
+    <span style="color:#f92672">}</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>By using a <code>try</code>-<code>finally</code> we can ensure that if the tests fall over or are
 aborted externally then the containers are still cleaned up.</p>
-
 <p>While testing we found that docker images and volumes would hang around,
 unfortunately we still don&rsquo;t live in a world with infinite disk space and
 found that fairly frequent cleanup is a necessity. Something like:</p>
-
-<pre><code class="language-bash">docker volume ls -qf dangling=true | sudo xargs -r sudo docker volume rm
-docker rmi `sudo docker images -f dangling=true -q --no-trunc`
-</code></pre>
-
-<p>seems to do the job fairly well, while leaving the core images that don&rsquo;t change
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker volume ls -qf dangling<span style="color:#f92672">=</span>true | sudo xargs -r sudo docker volume rm
+docker rmi <span style="color:#e6db74">`</span>sudo docker images -f dangling<span style="color:#f92672">=</span>true -q --no-trunc<span style="color:#e6db74">`</span>
+</code></pre></div><p>seems to do the job fairly well, while leaving the core images that don&rsquo;t change
 per-build in place.</p>
-
 <p>Again this offered comparable performance with the initial runs still hitting
 the mid-twenty minute range, however as the pipeline model allows the scripts
 to be stored in SCM we fulfilled one of the other requirements.</p>
-
 <h2 id="using-jenkins-pipeline-to-run-tests-in-parallel">Using Jenkins Pipeline to run tests in parallel</h2>
-
 <p>Up until this point all the effort has been into containing the build within its
 own isolated environment allowing multiple instances to run concurrently. To
 speed up the execution of a single build we can use the <code>parallel</code> step.
 Expanding upon the previous code running within a docker container parallelise
 the backend tests by adding:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy">stage name: <span style="color:#e6db74">&#39;test backend&#39;</span>
+<span style="color:#66d9ef">def</span> numOfNodes <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>
+<span style="color:#75715e">// This function is documented below. But it returns a list of lists of
+</span><span style="color:#75715e">// modules to test. (e.g [&#34;foo bar baz&#34;, &#34;quz bam zoo&#34;, ...])
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">def</span> testGroups <span style="color:#f92672">=</span> groupModulesToTest<span style="color:#f92672">(</span>readFile<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;results.xml&#34;</span><span style="color:#f92672">),</span> numOfNodes<span style="color:#f92672">)</span>
+tasks <span style="color:#f92672">=</span> <span style="color:#f92672">[:]</span>
 
-<pre><code class="language-groovy">stage name: 'test backend'
-def numOfNodes = 8
-// This function is documented below. But it returns a list of lists of
-// modules to test. (e.g [&quot;foo bar baz&quot;, &quot;quz bam zoo&quot;, ...])
-def testGroups = groupModulesToTest(readFile(&quot;results.xml&quot;), numOfNodes)
-tasks = [:]
-
-// Within workflow we have to use this style for-loop because JENKINS-26481
-for (int i = 0; i &lt; testGroups.size(); i++) {
-  String moduleList = testGroups.get(i)
-  String nodeName = &quot;${env.BUILD_ID}backend${i}&quot;
-  tasks[&quot;test_${nodeName}&quot;] = {
-    node {
-      dir('checkout') {
-        unstash 'checkout'
-        try {
+<span style="color:#75715e">// Within workflow we have to use this style for-loop because JENKINS-26481
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> testGroups<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">();</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+  String moduleList <span style="color:#f92672">=</span> testGroups<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>
+  String nodeName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;${env.BUILD_ID}backend${i}&#34;</span>
+  tasks<span style="color:#f92672">[</span><span style="color:#e6db74">&#34;test_${nodeName}&#34;</span><span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+    node <span style="color:#f92672">{</span>
+      dir<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;checkout&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        unstash <span style="color:#e6db74">&#39;checkout&#39;</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
           startDockers nodeName
-          // Run the test command within the container
-          sh &quot;docker exec tests_test_1 /bin/bash -c 'cd /srv/app/; /srv/app-venv/bin/python manage.py test ${moduleList} || true'&quot;
+          <span style="color:#75715e">// Run the test command within the container
+</span><span style="color:#75715e"></span>          sh <span style="color:#e6db74">&#34;docker exec tests_test_1 /bin/bash -c &#39;cd /srv/app/; /srv/app-venv/bin/python manage.py test ${moduleList} || true&#39;&#34;</span>
 
-          sh &quot;docker cp ${nodeName}_test_1:/srv/conversocial/src/nosetests.xml results.xml&quot;
-          stash name: &quot;${nodeName}_results&quot;, includes: 'results.xml'
-        } finally {
+          sh <span style="color:#e6db74">&#34;docker cp ${nodeName}_test_1:/srv/conversocial/src/nosetests.xml results.xml&#34;</span>
+          stash name: <span style="color:#e6db74">&#34;${nodeName}_results&#34;</span><span style="color:#f92672">,</span> includes: <span style="color:#e6db74">&#39;results.xml&#39;</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
           destroyDockers nodeName
-        }
-      }
-    }
-  }
-}
+        <span style="color:#f92672">}</span>
+      <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 parallel tasks
-</code></pre>
-
-<p>This will split into <code>numOfNodes</code> groups (e.g. 8 in this example, should be Set
+</code></pre></div><p>This will split into <code>numOfNodes</code> groups (e.g. 8 in this example, should be Set
 to the total number of executors to get best parallelism) and run a different
 group of tests on each of the nodes.</p>
-
 <p>This blog post won&rsquo;t go into the details of the best way to get the list of
 evenly distributed test groups but the following is a start, simply breaking
 up the tests per top level module:</p>
-
-<pre><code class="language-groovy">/**
- * Returns groupings of a modules to test.
- *
- * @param xml String containing the text from a JUnit file.
- * @param numGroups Number groups to divide the tests into.
- */
-@NonCPS List&lt;String&gt; groupModulesToTest(xml, numGroups){
-  def testsuite = new XmlSlurper().parseText(xml)
-  def allModules = testsuite.testcase.collect {
-    it.@classname.toString().tokenize('.')[0]
-  }.toSet()
-  def int numPerGroup = Math.ceil(allModules.size() / numGroups)
-  allModules.toList().collate(numPerGroup).collect { group -&gt;
-    group.join(' ')
-  }
-}
-</code></pre>
-
-<p>The <code>groupModulesToTest</code> function takes a JUnit test file as input. In our case
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * Returns groupings of a modules to test.
+</span><span style="color:#75715e"> *
+</span><span style="color:#75715e"> * @param xml String containing the text from a JUnit file.
+</span><span style="color:#75715e"> * @param numGroups Number groups to divide the tests into.
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@NonCPS</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> groupModulesToTest<span style="color:#f92672">(</span>xml<span style="color:#f92672">,</span> numGroups<span style="color:#f92672">){</span>
+  <span style="color:#66d9ef">def</span> testsuite <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> XmlSlurper<span style="color:#f92672">().</span><span style="color:#a6e22e">parseText</span><span style="color:#f92672">(</span>xml<span style="color:#f92672">)</span>
+  <span style="color:#66d9ef">def</span> allModules <span style="color:#f92672">=</span> testsuite<span style="color:#f92672">.</span><span style="color:#a6e22e">testcase</span><span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span> <span style="color:#f92672">{</span>
+    it<span style="color:#f92672">.</span><span style="color:#a6e22e">@classname.toString</span><span style="color:#f92672">().</span><span style="color:#a6e22e">tokenize</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;.&#39;</span><span style="color:#f92672">)[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span>
+  <span style="color:#f92672">}.</span><span style="color:#a6e22e">toSet</span><span style="color:#f92672">()</span>
+  <span style="color:#66d9ef">def</span> <span style="color:#66d9ef">int</span> numPerGroup <span style="color:#f92672">=</span> Math<span style="color:#f92672">.</span><span style="color:#a6e22e">ceil</span><span style="color:#f92672">(</span>allModules<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">()</span> <span style="color:#f92672">/</span> numGroups<span style="color:#f92672">)</span>
+  allModules<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collate</span><span style="color:#f92672">(</span>numPerGroup<span style="color:#f92672">).</span><span style="color:#a6e22e">collect</span> <span style="color:#f92672">{</span> group <span style="color:#f92672">-&gt;</span>
+    group<span style="color:#f92672">.</span><span style="color:#a6e22e">join</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">)</span>
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>The <code>groupModulesToTest</code> function takes a JUnit test file as input. In our case
 this can be generated before from the <code>--collect-only</code> argument that can be
 passed to <code>nose</code>. However, in other cases it might be wise to balance them from
 previous test runs; particularly if there is a large time variance across all
 the tests.</p>
-
 <p>This part had the biggest win on performance, this cut the test time down to
 around 8 minutes! However, when lots of people were running the tests at the
 same time, on the single instance, this could climb to double that. This
@@ -431,9 +381,7 @@ pointed out that we had perhaps put too many executors on the instance we were
 using (in AWS this was an <code>m4.2xlarge</code> @ 12 executors). But looking at the load
 of each executor is important, where before each would be running a single
 process each were now responsible for 3 containers.</p>
-
 <h2 id="going-multi-node">Going multi-node</h2>
-
 <p>While it seems like every week AWS releases a new instance type
 (<code>m4.10xlarge</code> FTW! 😎) eventually our number of tests is going to
 overtake even this. It would be better if the tests could be run across multiple
@@ -444,65 +392,51 @@ share these before. Along comes docker registry, but it does need a bit of a
 re-jig of the test pipeline and we need to move the pushing of docker images
 to into the building part of the job, they are then available for
 any node from the registry.</p>
-
 <p>Using the syntax:</p>
-
-<pre><code class="language-groovy">node('master') {
-  ...
-}
-</code></pre>
-
-<p>operations can be locked to the master node. We found it improved performance
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-groovy" data-lang="groovy">node<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;master&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  <span style="color:#f92672">...</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>operations can be locked to the master node. We found it improved performance
 when checking out the repositories if it was always on the same node,
 similarly for the building of the docker images. Additionally this means that
 only the master node has rights to checkout the repository and push to the
 registry which might be useful from a security perspective.</p>
-
 <p>After doing this the tests now can run on any number of hosts. In AWS, we found
 that running the master on a reserved instance and the group of supporting
 servers on a <a href="http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/US-SpotInstances.html">spot instance-based auto scaling group</a>
 as they are stateless and can be destroyed at any time, and are significantly
-cheaper than their on demand counterparts<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup>.</p>
-
+cheaper than their on demand counterparts<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>.</p>
 <h2 id="concluding-thoughts">Concluding Thoughts</h2>
-
 <p>Hopefully this post has been useful, and it has highlighted two distinct
 approaches that can be used in conjunction to give a fast, scalable model for
 running tests without need to change any of the core code in your application.</p>
-
 <p>The first part is to isolate tests to allow them to work side by side, allowing
 many instances of the test suite to run concurrently, so many developers can
 run their tests at the same time.</p>
-
 <p>The second is to parallelise the running of those tests so that many groups of
 tests can run at the same time, allowing the length of time to wait for tests
 to become a business decision over a technological one.</p>
-
 <p>Finally we actually meat our goals:</p>
-
 <p>✅ A drop in replacement in our build pipeline</p>
-
 <p>✅ Testing infrastructure should be easy to update and kept in SCM</p>
-
 <p>✅ The tests run in under 10 minutes, from the recently
 open-sourced <a href="https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Stage+View+Plugin">stage-view plugin</a>:</p>
-
-<p><img src="/images/stage-view-success.png" alt="Stage View Success!" /></p>
-
+<p><img src="/images/stage-view-success.png" alt="Stage View Success!"></p>
 <h4 id="footnotes">Footnotes</h4>
-<div class="footnotes">
-
-<hr />
-
+<section class="footnotes" role="doc-endnotes">
+<hr>
 <ol>
-<li id="fn:1">Ideally one would be able to separate out the tests so that the integration tests and the unit tests could be run independently so that this wouldn&rsquo;t be such an issue.
- <a class="footnote-return" href="#fnref:1"><sup>[return]</sup></a></li>
-<li id="fn:2">There is a <a href="https://issues.jenkins-ci.org/browse/JENKINS-27127">workaround</a> but changing our model to fit has a few potential gotchas, as the spin-waits have aback off means the job can take even longer when going in parallel, and it makes the job output and step views much more difficult to debug.
- <a class="footnote-return" href="#fnref:2"><sup>[return]</sup></a></li>
-<li id="fn:3">As a side note we use <a href="https://www.chef.io/">Chef</a> and the <a href="https://github.com/chef-cookbooks/jenkins">Jenkins cookbook</a> to configure all these instances it&rsquo;s not done by hand!
- <a class="footnote-return" href="#fnref:3"><sup>[return]</sup></a></li>
+<li id="fn:1" role="doc-endnote">
+<p>Ideally one would be able to separate out the tests so that the integration tests and the unit tests could be run independently so that this wouldn&rsquo;t be such an issue. <a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2" role="doc-endnote">
+<p>There is a <a href="https://issues.jenkins-ci.org/browse/JENKINS-27127">workaround</a> but changing our model to fit has a few potential gotchas, as the spin-waits have aback off means the job can take even longer when going in parallel, and it makes the job output and step views much more difficult to debug. <a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3" role="doc-endnote">
+<p>As a side note we use <a href="https://www.chef.io/">Chef</a> and the <a href="https://github.com/chef-cookbooks/jenkins">Jenkins cookbook</a> to configure all these instances it&rsquo;s not done by hand! <a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
 </ol>
-</div>
+</section>
 </div>
 
     
@@ -516,7 +450,7 @@ open-sourced <a href="https://wiki.jenkins-ci.org/display/JENKINS/Pipeline+Stage
 
         <footer>
 
-            <p class="copyright text-muted">&copy; 2019 William Cooke. All rights reserved.</p>
+            <p class="copyright text-muted">© 2019 William Cooke. All rights reserved.</p>
 
         </footer>
        
